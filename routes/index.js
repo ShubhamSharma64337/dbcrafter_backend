@@ -7,14 +7,31 @@ router.get('/', function(req, res, next) {
   res.render('index', { title: 'Dbcraftr API' });
 });
 
-//Middleware to check if the username or password is empty
-router.use(['/signin','/signup'],function(req, res, next){
+//Middleware to validate the signin data
+router.use('/signin',function(req, res, next){
   if(Object.keys(req.body).length === 0){
     res.send({success: false, message: 'Request body cannot be empty'});
   }
-  else if(req.body.username==='' || req.body.password===''){
-    res.send({success: false, message: 'Username or password cannot be empty'});
-  } else {
+  else if(req.body.email==='' || req.body.password===''){
+    res.send({success: false, message: 'Email or password cannot be empty'});
+  }
+  else {
+    next();
+  }
+})
+
+//Middleware to validate the signup data
+router.use('/signup',function(req, res, next){
+  if(Object.keys(req.body).length === 0){
+    res.send({success: false, message: 'Request body cannot be empty'});
+  }
+  else if(req.body.email==='' || req.body.password===''){
+    res.send({success: false, message: 'Email or password cannot be empty'});
+  }
+  else if(req.body.password !== req.body.confirmPassword){
+    res.send({success:false, message: 'Password and Confirmation Password not matched!'});
+  }
+  else {
     next();
   }
 })
@@ -36,13 +53,13 @@ router.post('/signin', (req, res, next)=>{
     const collection = db.collection('users');
     
     // the following code examples can be pasted here...
-    const findResult = await collection.findOne({username: req.body.username, password: req.body.password});
+    const findResult = await collection.findOne({email: req.body.email, password: req.body.password});
     if(findResult){
       result.success = true;
       result.message = "Sign in successfull";
     } else {
       result.success = false;
-      result.message = "Invalid username or password";
+      result.message = "Invalid email or password";
     }
     return 'done.';
   }
@@ -72,14 +89,14 @@ router.post('/signup', (req, res, next) => {
     const collection = db.collection('users');
     
     // the following code examples can be pasted here...
-    let already = await collection.findOne({username: req.body.username})
+    let already = await collection.findOne({email: req.body.email})
     if(!already){
       created.success = true;
       created.message = 'Successfully signed up';
-      await collection.insertOne({username: req.body.username, password: req.body.password}); 
+      await collection.insertOne({email: req.body.email, password: req.body.password}); 
     } else {
       created.success = false;
-      created.message = 'Username is not available';
+      created.message = 'Email is already registered';
     }
   }
 
