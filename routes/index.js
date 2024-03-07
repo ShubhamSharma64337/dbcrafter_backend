@@ -1,6 +1,28 @@
 var express = require('express');
 var router = express.Router();
 const { MongoClient } = require('mongodb')
+var session = require('express-session');
+
+//Setting session options
+router.use(session({  
+  name: `dbcrafter`,
+  secret: '123456',  
+  resave: false,
+  saveUninitialized: false,
+  cookie: { 
+    secure: false, // This will only work if you have https enabled!
+    maxAge: 1800000 // 30 minutes
+  } 
+}));
+
+/* Check signin status*/
+router.get('/loginstatus',(req,res,next)=>{
+  if(req.session.user){
+    res.send({success: true, user: req.session.user, message: "User is logged in"});
+  } else {
+    res.send({success:false, user: null, message:"No user is logged in"});
+  }
+})
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -14,6 +36,9 @@ router.use('/signin',function(req, res, next){
   }
   else if(req.body.email==='' || req.body.password===''){
     res.send({success: false, message: 'Email or password cannot be empty'});
+  }
+  else if(req.session.user){
+    res.send({success: false, message: 'User already logged in!'});
   }
   else {
     next();
@@ -56,6 +81,7 @@ router.post('/signin', (req, res, next)=>{
     const findResult = await collection.findOne({email: req.body.email, password: req.body.password});
     if(findResult){
       result.success = true;
+      req.session.user = req.body.email;
       result.message = "Sign in successfull";
     } else {
       result.success = false;
@@ -104,6 +130,22 @@ router.post('/signup', (req, res, next) => {
     .then(()=>{ res.send(created) }) //Remember, this accepts a method, not a function call, passing a function call leads to huge problems
     .catch(console.error)
     .finally(() => client.close());
+})
+
+//Middleware for logout
+router.use('/logout',(req,res,next)=>{
+  if(req.session.user){
+    next()
+  }else{
+    res.send({success: false, message: "Not logged in!"})
+  }
+})
+
+/* LOGOUT */
+router.get('/logout',(req, res, next)=>{
+  req.session.destroy(()=>{
+      res.send({success: true, message: 'Successfully logged out!'});
+  });
 })
 
 module.exports = router;
