@@ -18,7 +18,7 @@ router.use(session({
 /* Check signin status*/
 router.get('/loginstatus',(req,res,next)=>{
   if(req.session.user){
-    res.send({success: true, user: req.session.user, message: "User is logged in"});
+    res.send({success: true, user: req.session.user.email, message: "User is logged in"});
   } else {
     res.send({success:false, user: null, message:"No user is logged in"});
   }
@@ -81,7 +81,7 @@ router.post('/signin', (req, res, next)=>{
     const findResult = await collection.findOne({email: req.body.email, password: req.body.password});
     if(findResult){
       result.success = true;
-      req.session.user = req.body.email;
+      req.session.user = {email: req.body.email, uid: findResult._id};
       result.message = "Sign in successfull";
     } else {
       result.success = false;
