@@ -62,7 +62,7 @@ router.post('/getdiagram', function(req,res, next){
     const collection = db.collection('diagrams');
     
     // the following code examples can be pasted here...
-    let already = await collection.findOne({uid: req.session.user.uid, name: req.body.name},{name: 1, tbls: 1})
+    let already = await collection.findOne({uid: req.session.user.uid, name: req.body.name},{projection: {_id: 0, uid: 0}})
     if(!already){
       created.success = false;
       created.message = 'Cannot find diagram with specified name!';
