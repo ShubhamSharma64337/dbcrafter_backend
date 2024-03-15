@@ -98,7 +98,7 @@ router.post('/creatediagram', function(req, res, next){
     let already = await collection.findOne({uid: req.session.user.uid, name: req.body.name})
     if(!already){
       created.success = true;
-      created.message = 'Diagram successfully saved';
+      created.message = 'Diagram successfully created and saved!';
       await collection.insertOne({uid: req.session.user.uid, name: req.body.name, tbls: req.body.tbls}); 
     } else {
       created.success = false;
@@ -132,11 +132,11 @@ router.post('/savediagram', function(req, res, next){
     let already = await collection.findOne({uid: req.session.user.uid, name: req.body.name})
     if(!already){
       created.success = true;
-      created.message = 'Diagram does not exist already!';
+      created.message = 'Diagram does not exist already, you must create the diagram first to save changes to it!';
     } else {
       await collection.updateOne({uid: req.session.user.uid, name: req.body.name}, {$set: {tbls: req.body.tbls}}); 
       created.success = true;
-      created.message = 'Diagram successfully updated';
+      created.message = 'Diagram successfully saved!';
     }
   }
 
