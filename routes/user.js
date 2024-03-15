@@ -77,7 +77,18 @@ router.post('/getdiagram', function(req,res, next){
     .catch(console.error)
     .finally(() => client.close());
 })
-    
+
+// This middleware will handle the validation of data being sent to creatediagram route
+router.use('/creatediagram', function(req, res, next){
+  // Checking if the diagram name is valid
+  if(/^\s*$/.test(req.body.name) || req.body.name === null){
+    res.send({success: false, message: "Diagram name cannot be empty!"});
+    return;
+  } else {
+    next();
+  }
+})
+
 /*Create new diagram for user*/
 router.post('/creatediagram', function(req, res, next){
   // Connection URL
@@ -131,7 +142,7 @@ router.post('/savediagram', function(req, res, next){
     // the following code examples can be pasted here...
     let already = await collection.findOne({uid: req.session.user.uid, name: req.body.name})
     if(!already){
-      created.success = true;
+      created.success = false;
       created.message = 'Diagram does not exist already, you must create the diagram first to save changes to it!';
     } else {
       await collection.updateOne({uid: req.session.user.uid, name: req.body.name}, {$set: {tbls: req.body.tbls}}); 
