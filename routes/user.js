@@ -123,6 +123,40 @@ router.post('/creatediagram', function(req, res, next){
     .finally(() => client.close());
 })
 
+/*Delete a diagram for user*/
+router.post('/deletediagram', function(req, res, next){
+  // Connection URL
+  const url = 'mongodb://localhost:27017';
+  const client = new MongoClient(url);
+  
+  // Database Name
+  const dbName = 'dbcrafter';
+  let created = {success: false, message: 'Cannot delete diagram'}
+  async function main() {
+    // Use connect method to connect to the server
+    await client.connect();
+    console.log('Connected successfully to server');
+    const db = client.db(dbName);
+    const collection = db.collection('diagrams');
+    
+    // the following code examples can be pasted here...
+    let already = await collection.findOne({uid: req.session.user.uid, name: req.body.name})
+    if(already){
+      created.success = true;
+      created.message = 'Diagram successfully deleted!';
+      await collection.deleteOne({uid: req.session.user.uid, name: req.body.name}); 
+    } else {
+      created.success = false;
+      created.message = 'Diagram not found!';
+    }
+  }
+
+  main()
+    .then(()=>{ res.send(created) }) //Remember, this accepts a method, not a function call, passing a function call leads to huge problems
+    .catch(console.error)
+    .finally(() => client.close());
+})
+
 /*Save/update diagram*/
 router.post('/savediagram', function(req, res, next){
   // Connection URL
