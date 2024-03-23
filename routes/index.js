@@ -40,6 +40,15 @@ router.use('/signin',function(req, res, next){
   else if(req.session.user){
     res.send({success: false, message: 'User already logged in!'});
   }
+  else if(!/^[^@]+@[^@]+\.[^@]+$/.test(req.body.email)){
+    res.send({success:false, message: 'Invalid e-mail address!'})
+  }
+  else if(!/.{6,}/.test(req.body.password)){
+    res.send({success: false, message: 'Password must be at least 6 characters long!'});
+  }
+  else if(!(/[A-Z]/.test(req.body.password) && /[a-z]/.test(req.body.password) && /[0-9]/.test(req.body.password) && /[#?!@$%^ &*-]/.test(req.body.password))){
+    res.send({success:false, message: 'Password must contain at least one lowercase character, one uppercase character, a digit and a special character!'})
+  }
   else {
     next();
   }
@@ -55,6 +64,15 @@ router.use('/signup',function(req, res, next){
   }
   else if(req.body.password !== req.body.confirmPassword){
     res.send({success:false, message: 'Password and Confirmation Password not matched!'});
+  }
+  else if(!/^[^@]+@[^@]+\.[^@]+$/.test(req.body.email)){
+    res.send({success:false, message: 'Invalid e-mail address!'})
+  }
+  else if(!/.{6,}/.test(req.body.password)){
+    res.send({success: false, message: 'Password must be at least 6 characters long!'});
+  }
+  else if(!(/[A-Z]/.test(req.body.password) && /[a-z]/.test(req.body.password) && /[0-9]/.test(req.body.password) && /[#?!@$%^ &*-]/.test(req.body.password))){
+    res.send({success:false, message: 'Password must contain at least one lowercase character, one uppercase character, a digit and a special character!'})
   }
   else {
     next();
