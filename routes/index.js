@@ -2,7 +2,7 @@ var express = require('express');
 var router = express.Router();
 const { MongoClient } = require('mongodb')
 var session = require('express-session');
-
+const bcrypt = require('bcrypt')
 //Setting session options
 router.use(session({  
   name: `dbcrafter`,
@@ -96,11 +96,18 @@ router.post('/signin', (req, res, next)=>{
     const collection = db.collection('users');
     
     // the following code examples can be pasted here...
-    const findResult = await collection.findOne({email: req.body.email, password: req.body.password});
+    const findResult = await collection.findOne({email: req.body.email});
     if(findResult){
-      result.success = true;
-      req.session.user = {email: req.body.email, uid: findResult._id};
-      result.message = "Sign in successfull";
+      let isValid = await bcrypt.compare(req.body.password, findResult.password)
+      if(isValid){
+        req.session.user = {email: req.body.email, uid: findResult._id};
+        result.success = true;
+        result.message = "Sign in successfull";
+      } else {
+        result.success = false;
+        result.message = "Invalid password!";
+      }
+
     } else {
       result.success = false;
       result.message = "Invalid email or password";
@@ -135,9 +142,11 @@ router.post('/signup', (req, res, next) => {
     // the following code examples can be pasted here...
     let already = await collection.findOne({email: req.body.email})
     if(!already){
+      //now hashing the received password using bcrypt
+      const hash = await bcrypt.hash(req.body.password, 10);
+      await collection.insertOne({email: req.body.email, password: hash}); 
       created.success = true;
       created.message = 'Successfully signed up';
-      await collection.insertOne({email: req.body.email, password: req.body.password}); 
     } else {
       created.success = false;
       created.message = 'Email is already registered';
