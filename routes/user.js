@@ -29,7 +29,7 @@ router.get('/getdiagrams', function(req, res, next){
      const collection = db.collection('diagrams');
      
      // the following code examples can be pasted here...
-     let already = await collection.find({uid: req.session.user.uid},{projection: {_id: 0, uid: 0}}).toArray();
+     let already = await collection.find({uid: req.session.user.uid},{projection: {tbls: 0, uid: 0}}).toArray();
      if(already.length>0){
        created.success = true;
        created.message = already
