@@ -1,8 +1,6 @@
 var express = require('express');
 var router = express.Router();
 const { MongoClient } = require('mongodb')
-var session = require('express-session');
-var ObjectID = require('mongodb').ObjectId;
 
 //user related routes middleware
 router.use(function(req, res, next){
