@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const { MongoClient } = require('mongodb')
 var session = require('express-session');
+var ObjectID = require('mongodb').ObjectId;
 
 //user related routes middleware
 router.use(function(req, res, next){
@@ -29,7 +30,7 @@ router.get('/getdiagrams', function(req, res, next){
      const collection = db.collection('diagrams');
      
      // the following code examples can be pasted here...
-     let already = await collection.find({uid: req.session.user.uid},{projection: {tbls: 0, uid: 0}}).toArray();
+     let already = await collection.find({uid: req.session.user.uid},{projection: {_id: 0, tbls: 0, uid: 0}}).toArray();
      if(already.length>0){
        created.success = true;
        created.message = already
@@ -191,4 +192,36 @@ router.post('/savediagram', function(req, res, next){
     .finally(() => client.close());
 })
 
+router.post('/renamediagram', function(req, res, next){
+  // Connection URL
+  const url = 'mongodb://localhost:27017';
+  const client = new MongoClient(url);
+  
+  // Database Name
+  const dbName = 'dbcrafter';
+  let created = {success: false, message: 'Cannot rename diagram'}
+  async function main() {
+    // Use connect method to connect to the server
+    await client.connect();
+    console.log('Connected successfully to server');
+    const db = client.db(dbName);
+    const collection = db.collection('diagrams');
+    
+    // the following code examples can be pasted here...
+    let already = await collection.findOne({name: req.body.oldname, uid: req.session.user.uid})
+    if(!already){
+      created.success = false;
+      created.message = 'Diagram does not exist!';
+    } else {
+      await collection.updateOne({name: req.body.oldname, uid: req.session.user.uid}, {$set: {name: req.body.newname}}); 
+      created.success = true;
+      created.message = 'Diagram successfully renamed!';
+    }
+  }
+
+  main()
+    .then(()=>{ res.send(created) }) //Remember, this accepts a method, not a function call, passing a function call leads to huge problems
+    .catch(console.error)
+    .finally(() => client.close());
+})
 module.exports = router;
