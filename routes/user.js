@@ -190,6 +190,17 @@ router.post('/savediagram', function(req, res, next){
     .finally(() => client.close());
 })
 
+// This middleware will handle the validation of data being sent to renamediagram route
+router.use('/renamediagram', function(req, res, next){
+  // Checking if the diagram name is valid
+  if(/^\s*$/.test(req.body.oldname) || /^\s*$/.test(req.body.newname) || req.body.oldname === null || req.body.newname === null){
+    res.send({success: false, message: "Diagram name cannot be empty!"});
+    return;
+  } else {
+    next();
+  }
+})
+
 router.post('/renamediagram', function(req, res, next){
   // Connection URL
   const url = 'mongodb://localhost:27017';
