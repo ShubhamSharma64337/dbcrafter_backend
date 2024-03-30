@@ -12,9 +12,12 @@ router.use(session({
   secret: '123456',  
   resave: false,
   saveUninitialized: false,
+  proxy: true, //without this, no cookie is received from the server when hosted on gcloud
   cookie: { 
-    secure: false, // This will only work if you have https enabled!
-    maxAge: 1800000 // 30 minutes
+    sameSite: 'none',
+    secure: true, // This will only work if you have https enabled!
+    maxAge: 1800000, // 30 minutes
+    httpOnly: false
   } 
 }));
 
