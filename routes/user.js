@@ -1,6 +1,8 @@
 var express = require('express');
 var router = express.Router();
 const { MongoClient } = require('mongodb')
+//we need to use %40 to add @ symbol in case the password has it
+const url = 'mongodb+srv://shubhamsharma64337:Shubham%40123@dbcraftercluster.a8pvvwg.mongodb.net/?retryWrites=true&w=majority&appName=dbcrafterCluster'
 
 //user related routes middleware
 router.use(function(req, res, next){
@@ -14,7 +16,6 @@ router.use(function(req, res, next){
 //get all the diagrams of the signed in user
 router.get('/getdiagrams', function(req, res, next){
    // Connection URL
-   const url = 'mongodb://localhost:27017';
    const client = new MongoClient(url);
    
    // Database Name
@@ -47,7 +48,6 @@ router.get('/getdiagrams', function(req, res, next){
 //get the diagram specified by the name send in the request
 router.post('/getdiagram', function(req,res, next){
   // Connection URL
-  const url = 'mongodb://localhost:27017';
   const client = new MongoClient(url);
   
   // Database Name
@@ -91,7 +91,6 @@ router.use('/creatediagram', function(req, res, next){
 /*Create new diagram for user*/
 router.post('/creatediagram', function(req, res, next){
   // Connection URL
-  const url = 'mongodb://localhost:27017';
   const client = new MongoClient(url);
   
   // Database Name
@@ -125,7 +124,6 @@ router.post('/creatediagram', function(req, res, next){
 /*Delete a diagram for user*/
 router.post('/deletediagram', function(req, res, next){
   // Connection URL
-  const url = 'mongodb://localhost:27017';
   const client = new MongoClient(url);
   
   // Database Name
@@ -159,7 +157,6 @@ router.post('/deletediagram', function(req, res, next){
 /*Save/update diagram*/
 router.post('/savediagram', function(req, res, next){
   // Connection URL
-  const url = 'mongodb://localhost:27017';
   const client = new MongoClient(url);
   
   // Database Name
@@ -203,7 +200,6 @@ router.use('/renamediagram', function(req, res, next){
 
 router.post('/renamediagram', function(req, res, next){
   // Connection URL
-  const url = 'mongodb://localhost:27017';
   const client = new MongoClient(url);
   
   // Database Name

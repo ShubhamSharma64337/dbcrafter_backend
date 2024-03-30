@@ -3,6 +3,9 @@ var router = express.Router();
 const { MongoClient } = require('mongodb')
 var session = require('express-session');
 const bcrypt = require('bcrypt')
+
+//we need to use %40 to add @ symbol in case the password has it
+const url = 'mongodb+srv://shubhamsharma64337:Shubham%40123@dbcraftercluster.a8pvvwg.mongodb.net/?retryWrites=true&w=majority&appName=dbcrafterCluster'
 //Setting session options
 router.use(session({  
   name: `dbcrafter`,
@@ -82,7 +85,6 @@ router.use('/signup',function(req, res, next){
 /* POST signin */
 router.post('/signin', (req, res, next)=>{
   // Connection URL
-  const url = 'mongodb://localhost:27017';
   const client = new MongoClient(url);
 
   // Database Name
@@ -126,7 +128,6 @@ router.post('/signin', (req, res, next)=>{
 /*POST signup*/
 router.post('/signup', (req, res, next) => {
   // Connection URL
-  const url = 'mongodb://localhost:27017';
   const client = new MongoClient(url);
   
   // Database Name
