@@ -11,7 +11,7 @@ if(process.env.NODE_ENV === 'production'){ //the NODE_ENV environment variable i
   //if the app is not in production
 
   //we need to use %40 to add @ symbol in case the password has it
-  url = 'mongodb+srv://shubhamsharma64337:Shubham%40123@dbcraftercluster.a8pvvwg.mongodb.net/?retryWrites=true&w=majority&appName=dbcrafterCluster'
+  url = process.env.MONGO_CONNECTION
 }
 
 //Setting session options
