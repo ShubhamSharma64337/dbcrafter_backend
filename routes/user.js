@@ -1,8 +1,16 @@
 var express = require('express');
 var router = express.Router();
 const { MongoClient } = require('mongodb')
-//we need to use %40 to add @ symbol in case the password has it
-const url = 'mongodb+srv://shubhamsharma64337:Shubham%40123@dbcraftercluster.a8pvvwg.mongodb.net/?retryWrites=true&w=majority&appName=dbcrafterCluster'
+
+let url = 'mongodb://localhost:27017/dbcrafter'
+
+if(process.env.NODE_ENV === 'production'){//the NODE_ENV environment variable is set by gcloud appengine runtime as production when app is 
+  //hosted on gcloud, so we check it to set the connection string to online database if the app is in production, and to local mongodb database
+  //if the app is not in production
+  
+  //we need to use %40 to add @ symbol in case the password has it
+  url = 'mongodb+srv://shubhamsharma64337:Shubham%40123@dbcraftercluster.a8pvvwg.mongodb.net/?retryWrites=true&w=majority&appName=dbcrafterCluster'
+}
 
 //user related routes middleware
 router.use(function(req, res, next){

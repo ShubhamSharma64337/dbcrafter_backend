@@ -4,8 +4,16 @@ const { MongoClient } = require('mongodb')
 var session = require('express-session');
 const bcrypt = require('bcrypt')
 
-//we need to use %40 to add @ symbol in case the password has it
-const url = 'mongodb+srv://shubhamsharma64337:Shubham%40123@dbcraftercluster.a8pvvwg.mongodb.net/?retryWrites=true&w=majority&appName=dbcrafterCluster'
+let url = 'mongodb://localhost:27017/dbcrafter'
+
+if(process.env.NODE_ENV === 'production'){ //the NODE_ENV environment variable is set by gcloud appengine runtime as production when app is 
+  //hosted on gcloud, so we check it to set the connection string to online database if the app is in production, and to local mongodb database
+  //if the app is not in production
+
+  //we need to use %40 to add @ symbol in case the password has it
+  url = 'mongodb+srv://shubhamsharma64337:Shubham%40123@dbcraftercluster.a8pvvwg.mongodb.net/?retryWrites=true&w=majority&appName=dbcrafterCluster'
+}
+
 //Setting session options
 router.use(session({  
   name: `dbcrafter`,
@@ -14,8 +22,9 @@ router.use(session({
   saveUninitialized: false,
   proxy: true, //without this, no cookie is received from the server when hosted on gcloud
   cookie: { 
-    sameSite: 'none',
-    secure: true, // This will only work if you have https enabled!
+    //Below, we use the NODE_ENV variable to modify the cookie attributes for making development and production app work properly
+    sameSite: process.env.NODE_ENV === 'production'?'none':'lax',
+    secure: process.env.NODE_ENV === 'production'?true:false, // This will only work if you have https enabled!
     maxAge: 1800000, // 30 minutes
     httpOnly: false
   } 

@@ -18,7 +18,12 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use(cors({'origin': 'https://shubhamsharma64337.github.io', 'credentials':true}))
+if(process.env.NODE_ENV === 'production'){ //NODE_ENV is set to 'production' by gcloud App Engine when app is deployed
+  app.use(cors({'origin': 'https://shubhamsharma64337.github.io', 'credentials':true}))
+} else {
+  app.use(cors({'origin': 'http://localhost:5173', 'credentials':true}))
+}
+
 app.use('/', indexRouter);
 app.use('/user', userRouter);
 
