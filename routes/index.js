@@ -57,14 +57,7 @@ router.use('/signin',function(req, res, next){
   }
   else if(!/^[^@]+@[^@]+\.[^@]+$/.test(req.body.email)){
     res.send({success:false, message: 'Invalid e-mail address!'})
-  }
-  else if(!/.{6,}/.test(req.body.password)){
-    res.send({success: false, message: 'Password must be at least 6 characters long!'});
-  }
-  else if(!(/[A-Z]/.test(req.body.password) && /[a-z]/.test(req.body.password) && /[0-9]/.test(req.body.password) && /[#?!@$%^ &*-]/.test(req.body.password))){
-    res.send({success:false, message: 'Password must contain at least one lowercase character, one uppercase character, a digit and a special character!'})
-  }
-  else {
+  } else {
     next();
   }
 })

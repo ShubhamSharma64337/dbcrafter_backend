@@ -1,3 +1,4 @@
+# This file is required for gcloud app engine runtime
 runtime: nodejs20
 includes:
   - env_variables.yaml
