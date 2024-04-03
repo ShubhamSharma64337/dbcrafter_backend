@@ -38,7 +38,7 @@ router.get('/getdiagrams', function(req, res, next){
      const collection = db.collection('diagrams');
      
      // the following code examples can be pasted here...
-     let already = await collection.find({uid: req.session.user.uid},{projection: {_id: 0, tbls: 0, uid: 0}}).toArray();
+     let already = await collection.find({uid: req.session.user.uid},{projection: {tbls: 0, uid: 0}}).toArray();
      if(already.length>0){
        created.success = true;
        created.message = already
@@ -68,9 +68,9 @@ router.post('/getdiagram', function(req,res, next){
     console.log('Connected successfully to server');
     const db = client.db(dbName);
     const collection = db.collection('diagrams');
-    
+    let objIdObject = new ObjectId(req.body._id);
     // the following code examples can be pasted here...
-    let already = await collection.findOne({uid: req.session.user.uid, name: req.body.name},{projection: {_id: 0, uid: 0}})
+    let already = await collection.findOne({uid: req.session.user.uid, _id: objIdObject},{projection: {uid: 0}})
     if(!already){
       created.success = false;
       created.message = 'Cannot find diagram with specified name!';
