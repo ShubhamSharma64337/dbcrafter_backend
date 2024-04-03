@@ -148,14 +148,14 @@ router.post('/deletediagram', function(req, res, next){
     console.log('Connected successfully to server');
     const db = client.db(dbName);
     const collection = db.collection('diagrams');
-    
+
     let objIdObject = new ObjectId(req.body._id);
     // the following code examples can be pasted here...
     let already = await collection.findOne({uid: req.session.user.uid, _id: objIdObject})
     if(already){
       created.success = true;
       created.message = 'Diagram successfully deleted!';
-      await collection.deleteOne({uid: req.session.user.uid, name: req.body.name}); 
+      await collection.deleteOne({uid: req.session.user.uid, _id: objIdObject}); 
     } else {
       created.success = false;
       created.message = 'Diagram not found!';
@@ -204,7 +204,7 @@ router.post('/savediagram', function(req, res, next){
 // This middleware will handle the validation of data being sent to renamediagram route
 router.use('/renamediagram', function(req, res, next){
   // Checking if the diagram name is valid
-  if(/^\s*$/.test(req.body.oldname) || /^\s*$/.test(req.body.newname) || req.body.oldname === null || req.body.newname === null){
+  if(/^\s*$/.test(req.body.newname) || req.body.newname === null){
     res.send({success: false, message: "Diagram name cannot be empty!"});
     return;
   } else {
@@ -226,13 +226,14 @@ router.post('/renamediagram', function(req, res, next){
     const db = client.db(dbName);
     const collection = db.collection('diagrams');
     
+    let objIdObject = new ObjectId(req.body._id)
     // the following code examples can be pasted here...
-    let already = await collection.findOne({name: req.body.oldname, uid: req.session.user.uid})
+    let already = await collection.findOne({_id: objIdObject, uid: req.session.user.uid})
     if(!already){
       created.success = false;
       created.message = 'Diagram does not exist!';
     } else {
-      await collection.updateOne({name: req.body.oldname, uid: req.session.user.uid}, {$set: {name: req.body.newname}}); 
+      await collection.updateOne({_id: objIdObject, uid: req.session.user.uid}, {$set: {name: req.body.newname}}); 
       created.success = true;
       created.message = 'Diagram successfully renamed!';
     }
