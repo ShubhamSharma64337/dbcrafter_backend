@@ -149,8 +149,9 @@ router.post('/deletediagram', function(req, res, next){
     const db = client.db(dbName);
     const collection = db.collection('diagrams');
     
+    let objIdObject = new ObjectId(req.body._id);
     // the following code examples can be pasted here...
-    let already = await collection.findOne({uid: req.session.user.uid, name: req.body.name})
+    let already = await collection.findOne({uid: req.session.user.uid, _id: objIdObject})
     if(already){
       created.success = true;
       created.message = 'Diagram successfully deleted!';
