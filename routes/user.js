@@ -183,13 +183,12 @@ router.post('/savediagram', function(req, res, next){
     const db = client.db(dbName);
     const collection = db.collection('diagrams');
     
-    let objIdObject = new ObjectId(req.body._id)
-    let already = await collection.findOne({uid: req.session.user.uid, _id: objIdObject})
+    let already = await collection.findOne({uid: req.session.user.uid, name: req.body.name})
     if(!already){
       created.success = false;
       created.message = 'Diagram does not exist already, you must create the diagram first to save changes to it!';
     } else {
-      await collection.updateOne({uid: req.session.user.uid, _id: objIdObject}, {$set: {tbls: req.body.tbls, isPublic: req.body.isPublic}}); 
+      await collection.updateOne({uid: req.session.user.uid, name: req.body.name}, {$set: {tbls: req.body.tbls, isPublic: req.body.isPublic}}); 
       created.success = true;
       created.message = 'Diagram successfully saved!';
     }
