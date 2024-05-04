@@ -2,6 +2,7 @@ var express = require('express');
 var router = express.Router();
 const { MongoClient } = require('mongodb')
 var ObjectId = require('mongodb').ObjectId; 
+const bcrypt = require('bcrypt')
 
 let url = 'mongodb://localhost:27017/dbcrafter'
 
@@ -308,4 +309,73 @@ router.post('/gettemplate', function(req,res, next){
     .finally(() => client.close());
 })
 
+//Middleware to validate data received on changepassword route
+router.use('/changepassword',function(req,res,next){
+  if(Object.keys(req.body).length === 0){
+    res.send({success: false, message: 'Request body cannot be empty'});
+  }
+  else if(req.body.oldPassword === '' || req.body.oldPassword === null){
+    res.send({success: false, message: 'Old password cannot be empty'});
+  }
+  else if(req.body.newPassword === '' || req.body.newPassword === null){
+    res.send({success: false, message: 'New password cannot be empty'});
+  }
+  else if(req.body.confirmNewPassword === '' || req.body.confirmNewPassword === null){
+    res.send({success: false, message: 'Confirmation password cannot be empty'});
+  }
+  else if(req.body.newPassword !== req.body.confirmNewPassword){
+    res.send({success:false, message: 'New Password and Confirmation Password not matched!'});
+  }
+  else if(!/.{6,}/.test(req.body.newPassword) || !/.{6,}/.test(req.body.confirmNewPassword)){
+    res.send({success: false, message: 'New Password must be at least 6 characters long!'});
+  }
+  else{
+    next();
+  }
+})
+
+//Route for changing password
+router.post('/changepassword', function(req,res,next){
+  // Connection URL
+  const client = new MongoClient(url);
+
+  // Database Name
+  const dbName = 'dbcrafter';
+  let result = {success: false, message: 'Not Signed In'};
+  async function main() {
+    // Use connect method to connect to the server
+    await client.connect();
+    console.log('Connected successfully to server');
+    const db = client.db(dbName);
+    const collection = db.collection('users');
+    
+    const uidObject = new ObjectId(req.session.user.uid);
+    const findResult = await collection.findOne({_id: uidObject});
+    if(findResult){
+      let oldPassIsValid = await bcrypt.compare(req.body.oldPassword, findResult.password)
+      if(oldPassIsValid){
+        //now hashing the received new password using bcrypt
+        const hash = await bcrypt.hash(req.body.newPassword, 10);
+        await collection.updateOne({_id: uidObject}, {$set: {password: hash}}); 
+        result.success = true;
+        result.message = "Successfully changed the password!";
+      } else {
+        result.success = false;
+        result.message = "Incorrect old password!";
+      }
+
+    } else {
+      result.success = false;
+      result.message = "Account not found!";
+    }
+    return 'done.';
+  }
+
+  main()
+    .then(()=>{
+      res.send(result)
+    })
+    .catch(console.Error)
+    .finally(() => client.close());
+})
 module.exports = router;
