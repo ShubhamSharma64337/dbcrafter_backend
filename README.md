@@ -1,6 +1,6 @@
 # Dbcrafter (Backend)
 
-Before running this app, make sure you have the MongoDB Server installed and a dbcrafter with users collection in it  
+Before running this app, make sure you have the MongoDB Server installed and a database named dbcrafter with users and diagrams collection in it  
 
 To run the project -  
 
