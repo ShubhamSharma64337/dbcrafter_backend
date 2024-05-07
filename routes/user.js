@@ -378,4 +378,87 @@ router.post('/changepassword', function(req,res,next){
     .catch(console.Error)
     .finally(() => client.close());
 })
+
+//Middleware for reset account route
+router.use('/resetaccount', function(req,res,next){
+  if(Object.keys(req.body).length === 0){
+    res.send({success: false, message: 'Request body cannot be empty'});
+  } else if(req.body.password == null || req.body.password === ''){ //req.body.password == null treats null and undefined as same, === null does not!
+    res.send({success:false,message:'Password cannot be null!'});
+  } else {
+    next();
+  }
+})
+
+//Route for resetting account i.e delete all diagrams
+router.post('/resetaccount', function(req,res,next){
+  // Connection URL
+  const client = new MongoClient(url);
+
+  // Database Name
+  const dbName = 'dbcrafter';
+  let result = {success: false, message: 'Not Signed In'};
+  async function main() {
+    // Use connect method to connect to the server
+    await client.connect();
+    console.log('Connected successfully to server');
+    const db = client.db(dbName);
+    const collection = db.collection('users');
+    
+    const uidObject = new ObjectId(req.session.user.uid);
+    const findResult = await collection.findOne({_id: uidObject});
+    if(findResult){
+      let oldPassIsValid = await bcrypt.compare(req.body.password, findResult.password)
+      if(oldPassIsValid){
+        let delResult = deleteAllDiagrams(req.session.user.uid)
+        if(delResult === -1){
+          result.success = false;
+          result.message = "An error occured while trying to reset the account!";
+        } else {
+          result.success = true;
+          result.message = "Your account has been reset!";
+        }
+      } else {
+        result.success = false;
+        result.message = "Incorrect old password!";
+      }
+
+    } else {
+      result.success = false;
+      result.message = "Account not found!";
+    }
+    return 'done.';
+  }
+
+  main()
+    .then(()=>{
+      res.send(result)
+    })
+    .catch(console.Error)
+    .finally(() => client.close());
+})
+
+//This function is used by reset account route
+function deleteAllDiagrams(user_id){
+  // Connection URL
+  const client = new MongoClient(url);
+
+  // Database Name
+  const dbName = 'dbcrafter';
+  async function main() {
+    // Use connect method to connect to the server
+    await client.connect();
+    console.log('Connected successfully to server');
+    const db = client.db(dbName);
+    const collection = db.collection('diagrams');
+    collection.deleteMany({uid: user_id})
+    return 'done.';
+  }
+
+  main()
+  .then(()=>{ return 0 }) //Remember, this accepts a method, not a function call, passing a function call leads to huge problems
+    .catch(()=>{console.error(); return -1})
+    
+}
+
 module.exports = router;
