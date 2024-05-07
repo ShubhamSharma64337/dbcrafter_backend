@@ -108,8 +108,15 @@ router.post('/signin', (req, res, next)=>{
       let isValid = await bcrypt.compare(req.body.password, findResult.password)
       if(isValid){
         req.session.user = {email: req.body.email, uid: findResult._id};
-        result.success = true;
-        result.message = "Sign in successfull";
+        if(req.body.rememberMe && req.body.rememberMe === 'on'){
+            req.session.cookie.maxAge = 2628000000;
+            console.log("Max age set to 30 days");
+            result.success = true;
+            result.message = "Sign in successfull (Will be remembered for 30 days) ";
+        } else {
+          result.success = true;
+          result.message = "Sign in successfull";
+        }
       } else {
         result.success = false;
         result.message = "Invalid password!";
