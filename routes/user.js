@@ -451,7 +451,7 @@ function deleteAllDiagrams(user_id){
     console.log('Connected successfully to server');
     const db = client.db(dbName);
     const collection = db.collection('diagrams');
-    collection.deleteMany({uid: user_id})
+    await collection.deleteMany({uid: user_id})
     return 'done.';
   }
 
@@ -460,5 +460,66 @@ function deleteAllDiagrams(user_id){
     .catch(()=>{console.error(); return -1})
     
 }
+
+//Middleware for delete account route
+router.use('/deleteaccount', function(req,res,next){
+  if(Object.keys(req.body).length === 0){
+    res.send({success: false, message: 'Request body cannot be empty'});
+  } else if(req.body.password == null || req.body.password === ''){ //req.body.password == null treats null and undefined as same, === null does not!
+    res.send({success:false,message:'Password cannot be null!'});
+  } else {
+    next();
+  }
+})
+
+//Route for deleting account
+router.post('/deleteaccount', function(req,res,next){
+  // Connection URL
+  const client = new MongoClient(url);
+
+  // Database Name
+  const dbName = 'dbcrafter';
+  let result = {success: false, message: 'Not Signed In'};
+  async function main() {
+    // Use connect method to connect to the server
+    await client.connect();
+    console.log('Connected successfully to server');
+    const db = client.db(dbName);
+    const collection = db.collection('users');
+    
+    const uidObject = new ObjectId(req.session.user.uid);
+    const findResult = await collection.findOne({_id: uidObject});
+    if(findResult){
+      let oldPassIsValid = await bcrypt.compare(req.body.password, findResult.password)
+      if(oldPassIsValid){
+        let delResult = await collection.deleteOne({_id: uidObject})
+        deleteAllDiagrams(req.session.user.uid)
+        if(delResult.count === 0){
+          result.success = false;
+          result.message = "An error occured while trying to delete the account!";
+        } else {
+          result.success = true;
+          result.message = "Your account has been deleted!";
+          req.session.destroy();
+        }
+      } else {
+        result.success = false;
+        result.message = "Incorrect password!";
+      }
+
+    } else {
+      result.success = false;
+      result.message = "Account not found!";
+    }
+    return 'done.';
+  }
+
+  main()
+    .then(()=>{
+      res.send(result)
+    })
+    .catch(console.Error)
+    .finally(() => client.close());
+})
 
 module.exports = router;
