@@ -3,6 +3,8 @@ var router = express.Router();
 const { MongoClient } = require('mongodb')
 var ObjectId = require('mongodb').ObjectId; 
 const bcrypt = require('bcrypt')
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require('dotenv').config()
 
 let url = 'mongodb://localhost:27017/dbcrafter'
 
@@ -522,4 +524,36 @@ router.post('/deleteaccount', function(req,res,next){
     .finally(() => client.close());
 })
 
+//Middleware to validate data sent on /user/getattributes route
+router.use('/getattributes', function(req,res,next){
+  if(Object.keys(req.body).length < 1){
+    res.send({success:false, message: "Request body cannot be empty!"})
+  } else if(/^\s*$/.test(req.body.tblName) || req.body.tblName === null){
+    res.send({success:false, message: "tblName attribute not found in request body!"})
+  } else {
+    next();
+  }
+})
+
+//This route returns a JSON Array containing attributes for a specified object name using the Google Gemini AI API
+router.post('/getattributes',function(req,res,next){
+  const safe = {
+    "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",
+    "HARM_CATEGORY_HATE_SPEECH": "BLOCK_NONE",
+    "HARM_CATEGORY_SEXUALLY_EXPLICIT": "BLOCK_NONE",
+    "HARM_CATEGORY_DANGEROUS_CONTENT": "BLOCK_NONE",
+  }
+  const genAI = new GoogleGenerativeAI(process.env.API_KEY);
+  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash", safe});
+  async function run() {
+    const prompt = "Give me a array of objects of names and SQL datatype of attributes of a " + req.body.tblName + " object without comments, include primary key attribute as boolean, do not use markdown and do not include size. The key names should be name, type and isPKey. Output as JSON without markdown."
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const text = response.text();
+    res.send({success:true,message:JSON.parse(text)});
+  }
+  
+  run().catch((error)=>{console.log(error);res.send({success:false,message:"An error occured in trying to access Google Gemini API, please try using a different table name or try again after some time"})});
+
+})
 module.exports = router;
