@@ -26,13 +26,13 @@ router.use(function(req, res, next){
 })
 
 //get all the diagrams of the signed in user
-router.get('/getdiagrams', function(req, res, next){
+router.post('/getdiagrams', function(req, res, next){
    // Connection URL
    const client = new MongoClient(url);
    
    // Database Name
    const dbName = 'dbcrafter';
-   let created = {success: false, message: 'No diagrams created yet!'}
+   let created = {success: false, message: 'No diagrams created yet!', numPages: 0}
    async function main() {
      // Use connect method to connect to the server
      await client.connect();
@@ -40,14 +40,19 @@ router.get('/getdiagrams', function(req, res, next){
      const db = client.db(dbName);
      const collection = db.collection('diagrams');
      
-     // the following code examples can be pasted here...
-     let already = await collection.find({uid: req.session.user.uid},{projection: {tbls: 0, uid: 0}}).toArray();
+     const pageCount = 8; //This contains the number of diagrams to be sent on each page
+     const numDiagrams = await collection.countDocuments({uid: req.session.user.uid});
+     const numPages = Math.ceil(numDiagrams/pageCount);
+     const pageNumber = req.body.pageNumber?parseInt(req.body.pageNumber):1; //If no page number is sent in the request body, set it to 1
+     let already = await collection.find({uid: req.session.user.uid},{projection: {tbls: 0, uid: 0}}).limit(pageCount).skip((pageNumber-1)*pageCount).toArray();
      if(already.length>0){
        created.success = true;
-       created.message = already
+       created.message = already;
+       created.numPages = numPages;
      } else {
        created.success = false;
        created.message = 'No diagram found!';
+       created.numPages = 0;
      }
    }
  
