@@ -25,6 +25,11 @@ router.use(function(req, res, next){
   }
 })
 
+//This is middleware for getdiagrams route
+router.use('/getdiagrams', function(req, res, next){
+  next();
+})
+
 //get all the diagrams of the signed in user
 router.post('/getdiagrams', function(req, res, next){
    // Connection URL
@@ -40,7 +45,7 @@ router.post('/getdiagrams', function(req, res, next){
      const db = client.db(dbName);
      const collection = db.collection('diagrams');
      
-     const pageCount = 8; //This contains the number of diagrams to be sent on each page
+     const pageCount = req.body.pageSize ? parseInt(req.body.pageSize):8; //This contains the number of diagrams to be sent on each page
      let numDiagrams = await collection.countDocuments({uid: req.session.user.uid});
      let numPages = Math.ceil(numDiagrams/pageCount);
      const pageNumber = req.body.pageNumber || req.body.pageNumber < 1 ?parseInt(req.body.pageNumber):1; //If no page number is sent in the request body, or invalid page number is sent, set it to 1
