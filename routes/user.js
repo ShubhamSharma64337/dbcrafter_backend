@@ -41,10 +41,17 @@ router.post('/getdiagrams', function(req, res, next){
      const collection = db.collection('diagrams');
      
      const pageCount = 8; //This contains the number of diagrams to be sent on each page
-     const numDiagrams = await collection.countDocuments({uid: req.session.user.uid});
-     const numPages = Math.ceil(numDiagrams/pageCount);
-     const pageNumber = req.body.pageNumber?parseInt(req.body.pageNumber):1; //If no page number is sent in the request body, set it to 1
-     let already = await collection.find({uid: req.session.user.uid},{projection: {tbls: 0, uid: 0}}).limit(pageCount).skip((pageNumber-1)*pageCount).toArray();
+     let numDiagrams = await collection.countDocuments({uid: req.session.user.uid});
+     let numPages = Math.ceil(numDiagrams/pageCount);
+     const pageNumber = req.body.pageNumber || req.body.pageNumber < 1 ?parseInt(req.body.pageNumber):1; //If no page number is sent in the request body, or invalid page number is sent, set it to 1
+     let already = null;
+     if(req.body.keyword && !/\s+/.test(req.body.keyword)){
+       numDiagrams = await collection.countDocuments({uid: req.session.user.uid, name: {$regex : req.body.keyword, $options : 'i'}},{projection: {tbls: 0, uid: 0}});
+       numPages = Math.ceil(numDiagrams/pageCount)
+       already = await collection.find({uid: req.session.user.uid, name:  {$regex : req.body.keyword, $options : 'i'}},{projection: {tbls: 0, uid: 0}}).limit(pageCount).skip((pageNumber-1)*pageCount).toArray();
+     } else {
+       already = await collection.find({uid: req.session.user.uid},{projection: {tbls: 0, uid: 0}}).limit(pageCount).skip((pageNumber-1)*pageCount).toArray();
+     }
      if(already.length>0){
        created.success = true;
        created.message = already;
