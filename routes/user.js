@@ -141,7 +141,10 @@ router.post('/creatediagram', function(req, res, next){
     if(!already){
       created.success = true;
       created.message = 'Diagram successfully created and saved!';
-      await collection.insertOne({uid: req.session.user.uid, name: req.body.name, isPublic: req.body.isPublic, tbls: req.body.tbls}); 
+      let date = new Date(); //Creating a Date object
+      let indianDate = date.toLocaleString('en-IN',{timeZone: 'Asia/Calcutta'}); //Changing the format to Indian using locale, and timeZone to Asia/Calcutta
+      await collection.insertOne({uid: req.session.user.uid, name: req.body.name, isPublic: req.body.isPublic, createdAt: indianDate, tbls: req.body.tbls}); 
+      created.createdAt = indianDate; //Returning creation time with response so that the client can get the creation time without refetching the diagram from server
     } else {
       created.success = false;
       created.message = 'Diagram with same name already exists!';
